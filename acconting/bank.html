@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Banking System — Manny Kumar</title>
+
+<style>
+  :root {
+    --navy: #0a1628;
+    --navy2: #0f2044;
+    --blue: #1a4fd6;
+    --blue2: #2563eb;
+    --gold: #f5c842;
+    --gold2: #ffd966;
+    --green: #10b981;
+    --red: #ef4444;
+    --white: #f8faff;
+    --gray: #8a9ab5;
+    --card: #111e36;
+    --border: rgba(255,255,255,0.08);
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    background: var(--navy);
+    color: var(--white);
+    font-family: 'Segoe UI', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Background pattern */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 80% 60% at 70% 10%, rgba(26,79,214,0.18) 0%, transparent 60%),
+      radial-gradient(ellipse 50% 40% at 10% 80%, rgba(245,200,66,0.08) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container { max-width: 480px; margin: 0 auto; padding: 20px; position: relative; z-index: 1; }
+
+  /* Header */
+  .header {
+    text-align: center;
+    padding: 36px 0 28px;
+    animation: fadeDown 0.6s ease;
+  }
+  .bank-icon {
+    width: 64px; height: 64px;
+    background: linear-gradient(135deg, var(--blue), var(--gold));
+    border-radius: 20px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 28px;
+    margin: 0 auto 16px;
+    box-shadow: 0 8px 32px rgba(26,79,214,0.4);
+  }
+  .header h1 {
+    font-family: 'Segoe UI', sans-serif; font-weight: 800;
+    font-size: 26px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    color: var(--white);
+  }
+  .header p { color: var(--gray); font-size: 13px; margin-top: 4px; }
+
+  /* Balance Card */
+  .balance-card {
+    background: linear-gradient(135deg, var(--blue) 0%, #0d3a9e 100%);
+    border-radius: 20px;
+    padding: 24px;
+    margin-bottom: 20px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 12px 40px rgba(26,79,214,0.35);
+    animation: fadeUp 0.5s ease 0.1s both;
+  }
+  .balance-card::after {
+    content: '';
+    position: absolute;
+    top: -40px; right: -40px;
+    width: 180px; height: 180px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.06);
+  }
+  .balance-card::before {
+    content: '';
+    position: absolute;
+    bottom: -60px; left: -20px;
+    width: 140px; height: 140px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.04);
+  }
+  .balance-label { font-size: 12px; color: rgba(255,255,255,0.65); letter-spacing: 1px; text-transform: uppercase; }
+  .balance-amount {
+    font-family: 'Segoe UI', sans-serif; font-weight: 800;
+    font-size: 42px;
+    font-weight: 700;
+    margin: 6px 0 16px;
+    position: relative;
+  }
+  .balance-amount span { font-size: 22px; opacity: 0.7; margin-right: 4px; }
+  .card-info { display: flex; justify-content: space-between; align-items: flex-end; }
+  .card-name { font-size: 15px; font-weight: 500; }
+  .card-accno { font-size: 12px; color: rgba(255,255,255,0.55); margin-top: 2px; }
+  .card-badge {
+    background: rgba(255,255,255,0.15);
+    border-radius: 8px;
+    padding: 6px 12px;
+    font-size: 11px;
+    letter-spacing: 0.5px;
+    backdrop-filter: blur(8px);
+  }
+
+  /* Screen manager */
+  .screen { display: none; animation: fadeUp 0.35s ease; }
+  .screen.active { display: block; }
+
+  /* Cards */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+    padding: 24px;
+    margin-bottom: 16px;
+    animation: fadeUp 0.4s ease 0.15s both;
+  }
+  .card h2 {
+    font-family: 'Segoe UI', sans-serif; font-weight: 800;
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 20px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .card h2 .icon {
+    width: 36px; height: 36px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+
+  /* Buttons */
+  .btn {
+    width: 100%;
+    padding: 14px 20px;
+    border: none;
+    border-radius: 12px;
+    font-family: 'Segoe UI', sans-serif;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-bottom: 10px;
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+  }
+  .btn:last-child { margin-bottom: 0; }
+  .btn:active { transform: scale(0.98); }
+
+  .btn-primary {
+    background: var(--blue2);
+    color: white;
+    box-shadow: 0 4px 20px rgba(37,99,235,0.35);
+  }
+  .btn-primary:hover { background: #1d4ed8; box-shadow: 0 6px 24px rgba(37,99,235,0.5); }
+
+  .btn-gold {
+    background: var(--gold);
+    color: var(--navy);
+    box-shadow: 0 4px 20px rgba(245,200,66,0.3);
+    font-weight: 600;
+  }
+  .btn-gold:hover { background: var(--gold2); }
+
+  .btn-ghost {
+    background: transparent;
+    color: var(--gray);
+    border: 1px solid var(--border);
+  }
+  .btn-ghost:hover { background: rgba(255,255,255,0.05); color: var(--white); }
+
+  .btn-danger {
+    background: rgba(239,68,68,0.12);
+    color: var(--red);
+    border: 1px solid rgba(239,68,68,0.2);
+  }
+  .btn-danger:hover { background: rgba(239,68,68,0.2); }
+
+  .btn-success {
+    background: rgba(16,185,129,0.12);
+    color: var(--green);
+    border: 1px solid rgba(16,185,129,0.2);
+  }
+  .btn-success:hover { background: rgba(16,185,129,0.2); }
+
+  /* Input */
+  .input-group { margin-bottom: 14px; }
+  .input-group label { display: block; font-size: 12px; color: var(--gray); margin-bottom: 6px; letter-spacing: 0.5px; text-transform: uppercase; }
+  .input-group input {
+    width: 100%;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 16px;
+    color: var(--white);
+    font-family: 'Segoe UI', sans-serif;
+    font-size: 15px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .input-group input:focus { border-color: var(--blue2); background: rgba(37,99,235,0.08); }
+  .input-group input::placeholder { color: var(--gray); }
+
+  /* Menu grid */
+  .menu-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+  .menu-item {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 18px 14px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: center;
+  }
+  .menu-item:hover { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.15); transform: translateY(-2px); }
+  .menu-item:active { transform: scale(0.97); }
+  .menu-item .mi-icon { font-size: 28px; margin-bottom: 8px; }
+  .menu-item .mi-label { font-size: 13px; font-weight: 500; color: var(--white); }
+  .menu-item .mi-sub { font-size: 11px; color: var(--gray); margin-top: 2px; }
+
+  /* Transaction list */
+  .tx-list { list-style: none; }
+  .tx-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .tx-item:last-child { border-bottom: none; }
+  .tx-dot {
+    width: 38px; height: 38px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+  .tx-dot.credit { background: rgba(16,185,129,0.15); }
+  .tx-dot.debit { background: rgba(239,68,68,0.15); }
+  .tx-dot.interest { background: rgba(245,200,66,0.15); }
+  .tx-info { flex: 1; }
+  .tx-info .tx-name { font-size: 14px; font-weight: 500; }
+  .tx-info .tx-date { font-size: 11px; color: var(--gray); margin-top: 2px; }
+  .tx-amount { font-family: 'Segoe UI', sans-serif; font-weight: 800; font-size: 15px; font-weight: 600; }
+  .tx-amount.credit { color: var(--green); }
+  .tx-amount.debit { color: var(--red); }
+  .tx-amount.interest { color: var(--gold); }
+
+  /* Toast */
+  .toast {
+    position: fixed;
+    bottom: 30px; left: 50%; transform: translateX(-50%) translateY(20px);
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px 20px;
+    font-size: 14px;
+    opacity: 0;
+    transition: all 0.3s ease;
+    z-index: 999;
+    white-space: nowrap;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  .toast.success { border-color: rgba(16,185,129,0.4); color: var(--green); }
+  .toast.error { border-color: rgba(239,68,68,0.4); color: var(--red); }
+
+  /* Alert box */
+  .alert {
+    padding: 12px 16px;
+    border-radius: 10px;
+    font-size: 13px;
+    margin-bottom: 16px;
+  }
+  .alert.success { background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.25); color: var(--green); }
+  .alert.error { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.25); color: var(--red); }
+  .alert.info { background: rgba(37,99,235,0.1); border: 1px solid rgba(37,99,235,0.25); color: #60a5fa; }
+
+  /* Account list */
+  .acc-item {
+    display: flex; align-items: center; gap: 14px;
+    padding: 14px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .acc-item:hover { background: rgba(255,255,255,0.06); }
+  .acc-avatar {
+    width: 42px; height: 42px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, var(--blue), var(--gold));
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Segoe UI', sans-serif; font-weight: 800;
+    font-weight: 700;
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+  .acc-info .acc-name { font-size: 15px; font-weight: 500; }
+  .acc-info .acc-no { font-size: 12px; color: var(--gray); margin-top: 2px; }
+  .acc-bal { font-family: 'Segoe UI', sans-serif; font-weight: 800; font-size: 15px; font-weight: 600; color: var(--gold); margin-left: auto; }
+
+  /* Back button */
+  .back-btn {
+    display: flex; align-items: center; gap: 6px;
+    color: var(--gray); font-size: 13px;
+    cursor: pointer; margin-bottom: 20px;
+    width: fit-content;
+    transition: color 0.2s;
+  }
+  .back-btn:hover { color: var(--white); }
+
+  /* Section title */
+  .section-title {
+    font-family: 'Segoe UI', sans-serif; font-weight: 800;
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 20px;
+  }
+
+  /* Divider */
+  .divider { height: 1px; background: var(--border); margin: 16px 0; }
+
+  /* Animations */
+  @keyframes fadeDown { from { opacity:0; transform:translateY(-20px); } to { opacity:1; transform:translateY(0); } }
+  @keyframes fadeUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+
+  /* No tx msg */
+  .empty-state { text-align: center; padding: 30px 0; color: var(--gray); font-size: 14px; }
+  .empty-state .e-icon { font-size: 36px; margin-bottom: 10px; }
+
+  /* Amount display */
+  .amount-display {
+    background: rgba(37,99,235,0.08);
+    border: 1px solid rgba(37,99,235,0.2);
+    border-radius: 12px;
+    padding: 16px;
+    text-align: center;
+    margin-bottom: 16px;
+  }
+  .amount-display .ad-label { font-size: 11px; color: var(--gray); text-transform: uppercase; letter-spacing: 1px; }
+  .amount-display .ad-val { font-family: 'Segoe UI', sans-serif; font-weight: 800; font-size: 32px; font-weight: 700; color: var(--gold); margin-top: 4px; }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="bank-icon">🏦</div>
+    <h1>MannyBank</h1>
+    <p>BCA Project by Manny Kumar</p>
+  </div>
+
+  <!-- SCREEN: HOME -->
+  <div class="screen active" id="screen-home">
+    <div class="balance-card" id="main-balance-card" style="display:none">
+      <div class="balance-label">Total Balance</div>
+      <div class="balance-amount"><span>₹</span><span id="total-balance">0</span></div>
+      <div class="card-info">
+        <div>
+          <div class="card-name" id="home-name">—</div>
+          <div class="card-accno" id="home-accno">—</div>
+        </div>
+        <div class="card-badge">SAVINGS</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2><span class="icon" style="background:rgba(37,99,235,0.15)">🏠</span> Main Menu</h2>
+      <div class="menu-grid">
+        <div class="menu-item" onclick="showScreen('screen-create')">
+          <div class="mi-icon">➕</div>
+          <div class="mi-label">New Account</div>
+          <div class="mi-sub">Create</div>
+        </div>
+        <div class="menu-item" onclick="showScreen('screen-login')">
+          <div class="mi-icon">🔐</div>
+          <div class="mi-label">Login</div>
+          <div class="mi-sub">Use account</div>
+        </div>
+        <div class="menu-item" onclick="showAllAccounts()">
+          <div class="mi-icon">👥</div>
+          <div class="mi-label">All Accounts</div>
+          <div class="mi-sub">View list</div>
+        </div>
+        <div class="menu-item" onclick="showScreen('screen-about')">
+          <div class="mi-icon">ℹ️</div>
+          <div class="mi-label">About</div>
+          <div class="mi-sub">Project info</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCREEN: CREATE ACCOUNT -->
+  <div class="screen" id="screen-create">
+    <div class="back-btn" onclick="showScreen('screen-home')">← Back</div>
+    <div class="section-title">Create Account</div>
+    <div class="card">
+      <h2><span class="icon" style="background:rgba(16,185,129,0.15)">✨</span> New Account</h2>
+      <div id="create-alert"></div>
+      <div class="input-group">
+        <label>Full Name</label>
+        <input type="text" id="create-name" placeholder="Enter your name">
+      </div>
+      <div class="input-group">
+        <label>4-Digit PIN</label>
+        <input type="password" id="create-pin" placeholder="e.g. 1234" maxlength="4">
+      </div>
+      <div class="input-group">
+        <label>Confirm PIN</label>
+        <input type="password" id="create-pin2" placeholder="Re-enter PIN" maxlength="4">
+      </div>
+      <button class="btn btn-gold" onclick="createAccount()">🏦 Create Account</button>
+      <button class="btn btn-ghost" onclick="showScreen('screen-home')">Cancel</button>
+    </div>
+  </div>
+
+  <!-- SCREEN: LOGIN -->
+  <div class="screen" id="screen-login">
+    <div class="back-btn" onclick="showScreen('screen-home')">← Back</div>
+    <div class="section-title">Login</div>
+    <div class="card">
+      <h2><span class="icon" style="background:rgba(245,200,66,0.15)">🔐</span> Account Login</h2>
+      <div id="login-alert"></div>
+      <div class="input-group">
+        <label>Account Number</label>
+        <input type="number" id="login-accno" placeholder="e.g. 1000">
+      </div>
+      <div class="input-group">
+        <label>PIN</label>
+        <input type="password" id="login-pin" placeholder="4-digit PIN" maxlength="4">
+      </div>
+      <button class="btn btn-primary" onclick="loginAccount()">🔑 Login</button>
+      <button class="btn btn-ghost" onclick="showScreen('screen-home')">Cancel</button>
+    </div>
+  </div>
+
+  <!-- SCREEN: DASHBOARD -->
+  <div class="screen" id="screen-dashboard">
+    <div class="back-btn" onclick="logout()">← Logout</div>
+
+    <div class="balance-card">
+      <div class="balance-label">Available Balance</div>
+      <div class="balance-amount"><span>₹</span><span id="dash-balance">0</span></div>
+      <div class="card-info">
+        <div>
+          <div class="card-name" id="dash-name">—</div>
+          <div class="card-accno" id="dash-accno">—</div>
+        </div>
+        <div class="card-badge">SAVINGS</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2><span class="icon" style="background:rgba(37,99,235,0.15)">⚡</span> Quick Actions</h2>
+      <div class="menu-grid">
+        <div class="menu-item" onclick="showScreen('screen-deposit')">
+          <div class="mi-icon">💰</div>
+          <div class="mi-label">Deposit</div>
+          <div class="mi-sub">Add money</div>
+        </div>
+        <div class="menu-item" onclick="showScreen('screen-withdraw')">
+          <div class="mi-icon">💸</div>
+          <div class="mi-label">Withdraw</div>
+          <div class="mi-sub">Take money</div>
+        </div>
+        <div class="menu-item" onclick="showScreen('screen-statement')">
+          <div class="mi-icon">📋</div>
+          <div class="mi-label">Statement</div>
+          <div class="mi-sub">Transactions</div>
+        </div>
+        <div class="menu-item" onclick="addInterest()">
+          <div class="mi-icon">📈</div>
+          <div class="mi-label">Interest</div>
+          <div class="mi-sub">Add 4%</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCREEN: DEPOSIT -->
+  <div class="screen" id="screen-deposit">
+    <div class="back-btn" onclick="showScreen('screen-dashboard')">← Back</div>
+    <div class="section-title">Deposit Money</div>
+    <div class="card">
+      <h2><span class="icon" style="background:rgba(16,185,129,0.15)">💰</span> Add Money</h2>
+      <div id="deposit-alert"></div>
+      <div class="amount-display">
+        <div class="ad-label">Current Balance</div>
+        <div class="ad-val">₹<span id="dep-curr-bal">0</span></div>
+      </div>
+      <div class="input-group">
+        <label>Amount to Deposit (₹)</label>
+        <input type="number" id="deposit-amount" placeholder="Enter amount" min="1">
+      </div>
+      <button class="btn btn-success" onclick="doDeposit()">✅ Deposit Now</button>
+      <button class="btn btn-ghost" onclick="showScreen('screen-dashboard')">Cancel</button>
+    </div>
+  </div>
+
+  <!-- SCREEN: WITHDRAW -->
+  <div class="screen" id="screen-withdraw">
+    <div class="back-btn" onclick="showScreen('screen-dashboard')">← Back</div>
+    <div class="section-title">Withdraw Money</div>
+    <div class="card">
+      <h2><span class="icon" style="background:rgba(239,68,68,0.15)">💸</span> Take Money</h2>
+      <div id="withdraw-alert"></div>
+      <div class="amount-display">
+        <div class="ad-label">Available Balance</div>
+        <div class="ad-val">₹<span id="with-curr-bal">0</span></div>
+      </div>
+      <div class="input-group">
+        <label>Amount to Withdraw (₹)</label>
+        <input type="number" id="withdraw-amount" placeholder="Enter amount" min="1">
+      </div>
+      <button class="btn btn-danger" onclick="doWithdraw()">💸 Withdraw Now</button>
+      <button class="btn btn-ghost" onclick="showScreen('screen-dashboard')">Cancel</button>
+    </div>
+  </div>
+
+  <!-- SCREEN: STATEMENT -->
+  <div class="screen" id="screen-statement">
+    <div class="back-btn" onclick="showScreen('screen-dashboard')">← Back</div>
+    <div class="section-title">Mini Statement</div>
+    <div class="card">
+      <h2><span class="icon" style="background:rgba(245,200,66,0.15)">📋</span> Last Transactions</h2>
+      <ul class="tx-list" id="tx-list"></ul>
+    </div>
+  </div>
+
+  <!-- SCREEN: ALL ACCOUNTS -->
+  <div class="screen" id="screen-accounts">
+    <div class="back-btn" onclick="showScreen('screen-home')">← Back</div>
+    <div class="section-title">All Accounts</div>
+    <div id="acc-list"></div>
+  </div>
+
+  <!-- SCREEN: ABOUT -->
+  <div class="screen" id="screen-about">
+    <div class="back-btn" onclick="showScreen('screen-home')">← Back</div>
+    <div class="section-title">About</div>
+    <div class="card">
+      <h2><span class="icon" style="background:rgba(37,99,235,0.15)">🎓</span> Project Info</h2>
+      <div class="alert info">BCA 1st Year — C++ Project converted to Web App</div>
+      <div style="font-size:14px; line-height:1.9; color: var(--gray);">
+        <div style="margin-bottom:10px"><strong style="color:var(--white)">Project:</strong> Banking System v1.0</div>
+        <div style="margin-bottom:10px"><strong style="color:var(--white)">Developer:</strong> Manny Kumar</div>
+        <div style="margin-bottom:10px"><strong style="color:var(--white)">Language:</strong> HTML, CSS, JavaScript</div>
+        <div style="margin-bottom:10px"><strong style="color:var(--white)">Original:</strong> C++ Console App</div>
+        <div class="divider"></div>
+        <strong style="color:var(--white)">F
